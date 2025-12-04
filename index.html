@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Battle Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .level-info {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .battle-arena {
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .pokemon-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .pokemon {
+            text-align: center;
+            flex: 1;
+        }
+
+        .pokemon-sprite {
+            font-size: 80px;
+            margin-bottom: 10px;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .pokemon-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .health-bar-container {
+            background: #ddd;
+            height: 25px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px auto;
+            max-width: 200px;
+            border: 2px solid #333;
+        }
+
+        .health-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .health-bar.low {
+            background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+        }
+
+        .health-bar.critical {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .vs {
+            font-size: 2em;
+            font-weight: bold;
+            color: #f5576c;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .attack-btn {
+            padding: 15px 25px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .attack-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .attack-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .attack-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .attack-1 {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+        }
+
+        .attack-2 {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .attack-3 {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .heal-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .message-box {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            min-height: 80px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .message {
+            color: #333;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .victory-screen, .game-over-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .victory-screen h2 {
+            color: #10b981;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .game-over-screen h2 {
+            color: #ef4444;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .next-level-btn, .restart-btn {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .next-level-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .next-level-btn:hover, .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+
+        .stat-value {
+            color: #1f2937;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .hit-animation {
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>⚡ Pokémon Battle Adventure ⚡</h1>
+            <div class="level-info">
+                <span id="levelDisplay">Level 1 of 3</span>
+            </div>
+        </div>
+
+        <div class="battle-arena" id="battleArena">
+            <div class="pokemon-container">
+                <div class="pokemon">
+                    <div class="pokemon-sprite" id="playerSprite">🔥</div>
+                    <div class="pokemon-name" id="playerName">Charizard</div>
+                    <div class="health-bar-container">
+                        <div class="health-bar" id="playerHealth">100/100</div>
+                    </div>
+                </div>
+
+                <div class="vs">VS</div>
+
+                <div class="pokemon">
+                    <div class="pokemon-sprite" id="enemySprite">💧</div>
+                    <div class="pokemon-name" id="enemyName">Squirtle</div>
+                    <div class="health-bar-container">
+                        <div class="health-bar" id="enemyHealth">100/100</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="attack-btn attack-1" onclick="attack('flamethrower')">🔥 Flamethrower</button>
+                <button class="attack-btn attack-2" onclick="attack('dragon-claw')">🐉 Dragon Claw</button>
+                <button class="attack-btn attack-3" onclick="attack('air-slash')">💨 Air Slash</button>
+                <button class="attack-btn heal-btn" onclick="heal()" id="healBtn">💚 Heal (3)</button>
+            </div>
+
+            <div class="message-box">
+                <div class="message" id="message">Choose your attack!</div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">Battles Won</div>
+                    <div class="stat-value" id="battlesWon">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Total Damage</div>
+                    <div class="stat-value" id="totalDamage">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const levels = [
+            {
+                level: 1,
+                enemy: { name: 'Squirtle', sprite: '💧', health: 100, attacks: ['Water Gun', 'Bubble', 'Tackle'] },
+                player: { name: 'Charizard', sprite: '🔥' }
+            },
+            {
+                level: 2,
+                enemy: { name: 'Venusaur', sprite: '🌿', health: 150, attacks: ['Vine Whip', 'Solar Beam', 'Razor Leaf'] },
+                player: { name: 'Charizard', sprite: '🔥' }
+            },
+            {
+                level: 3,
+                enemy: { name: 'Mewtwo', sprite: '👾', health: 200, attacks: ['Psychic', 'Shadow Ball', 'Psystrike'] },
+                player: { name: 'Charizard', sprite: '🔥' }
+            }
+        ];
+
+        let currentLevel = 0;
+        let playerHealth = 100;
+        let enemyHealth = 100;
+        let healsRemaining = 3;
+        let battlesWon = 0;
+        let totalDamage = 0;
+        let isPlayerTurn = true;
+
+        const attacks = {
+            'flamethrower': { damage: 25, name: 'Flamethrower' },
+            'dragon-claw': { damage: 30, name: 'Dragon Claw' },
+            'air-slash': { damage: 20, name: 'Air Slash' }
+        };
+
+        function initLevel() {
+            const level = levels[currentLevel];
+            playerHealth = 100;
+            enemyHealth = level.enemy.health;
+            healsRemaining = 3;
+            isPlayerTurn = true;
+
+            document.getElementById('levelDisplay').textContent = `Level ${currentLevel + 1} of 3`;
+            document.getElementById('playerSprite').textContent = level.player.sprite;
+            document.getElementById('playerName').textContent = level.player.name;
+            document.getElementById('enemySprite').textContent = level.enemy.sprite;
+            document.getElementById('enemyName').textContent = level.enemy.name;
+            document.getElementById('healBtn').textContent = `💚 Heal (${healsRemaining})`;
+            document.getElementById('message').textContent = `A wild ${level.enemy.name} appeared! Choose your attack!`;
+            
+            updateHealthBars();
+            enableControls();
+        }
+
+        function attack(attackType) {
+            if (!isPlayerTurn) return;
+
+            const attackData = attacks[attackType];
+            const damage = attackData.damage + Math.floor(Math.random() * 10);
+            
+            enemyHealth = Math.max(0, enemyHealth - damage);
+            totalDamage += damage;
+            
+            document.getElementById('totalDamage').textContent = totalDamage;
+            document.getElementById('enemySprite').classList.add('hit-animation');
+            
+            setTimeout(() => {
+                document.getElementById('enemySprite').classList.remove('hit-animation');
+            }, 300);
+
+            document.getElementById('message').textContent = `${levels[currentLevel].player.name} used ${attackData.name}! Dealt ${damage} damage!`;
+            
+            updateHealthBars();
+
+            if (enemyHealth <= 0) {
+                setTimeout(victory, 1000);
+                return;
+            }
+
+            isPlayerTurn = false;
+            disableControls();
+            setTimeout(enemyAttack, 1500);
+        }
+
+        function enemyAttack() {
+            const level = levels[currentLevel];
+            const attackName = level.enemy.attacks[Math.floor(Math.random() * level.enemy.attacks.length)];
+            const damage = 15 + Math.floor(Math.random() * 15);
+            
+            playerHealth = Math.max(0, playerHealth - damage);
+            
+            document.getElementById('playerSprite').classList.add('hit-animation');
+            
+            setTimeout(() => {
+                document.getElementById('playerSprite').classList.remove('hit-animation');
+            }, 300);
+
+            document.getElementById('message').textContent = `${level.enemy.name} used ${attackName}! You took ${damage} damage!`;
+            
+            updateHealthBars();
+
+            if (playerHealth <= 0) {
+                setTimeout(gameOver, 1000);
+                return;
+            }
+
+            isPlayerTurn = true;
+            enableControls();
+        }
+
+        function heal() {
+            if (!isPlayerTurn || healsRemaining <= 0) return;
+
+            const healAmount = 30;
+            playerHealth = Math.min(100, playerHealth + healAmount);
+            healsRemaining--;
+            
+            document.getElementById('healBtn').textContent = `💚 Heal (${healsRemaining})`;
+            document.getElementById('message').textContent = `${levels[currentLevel].player.name} restored ${healAmount} HP!`;
+            
+            updateHealthBars();
+
+            if (healsRemaining === 0) {
+                document.getElementById('healBtn').disabled = true;
+            }
+
+            isPlayerTurn = false;
+            disableControls();
+            setTimeout(enemyAttack, 1500);
+        }
+
+        function updateHealthBars() {
+            const playerBar = document.getElementById('playerHealth');
+            const enemyBar = document.getElementById('enemyHealth');
+            const maxEnemyHealth = levels[currentLevel].enemy.health;
+
+            const playerPercent = (playerHealth / 100) * 100;
+            const enemyPercent = (enemyHealth / maxEnemyHealth) * 100;
+
+            playerBar.style.width = playerPercent + '%';
+            playerBar.textContent = `${playerHealth}/100`;
+            playerBar.className = 'health-bar';
+            if (playerPercent <= 30) playerBar.classList.add('critical');
+            else if (playerPercent <= 50) playerBar.classList.add('low');
+
+            enemyBar.style.width = enemyPercent + '%';
+            enemyBar.textContent = `${enemyHealth}/${maxEnemyHealth}`;
+            enemyBar.className = 'health-bar';
+            if (enemyPercent <= 30) enemyBar.classList.add('critical');
+            else if (enemyPercent <= 50) enemyBar.classList.add('low');
+        }
+
+        function disableControls() {
+            document.querySelectorAll('.attack-btn').forEach(btn => {
+                if (btn.id !== 'healBtn' || healsRemaining > 0) {
+                    btn.disabled = true;
+                }
+            });
+        }
+
+        function enableControls() {
+            document.querySelectorAll('.attack-btn').forEach(btn => {
+                if (btn.id === 'healBtn' && healsRemaining === 0) return;
+                btn.disabled = false;
+            });
+        }
+
+        function victory() {
+            battlesWon++;
+            document.getElementById('battlesWon').textContent = battlesWon;
+
+            if (currentLevel < levels.length - 1) {
+                document.getElementById('battleArena').innerHTML = `
+                    <div class="victory-screen">
+                        <h2>🎉 Victory! 🎉</h2>
+                        <p style="font-size: 1.3em; margin: 20px 0;">You defeated ${levels[currentLevel].enemy.name}!</p>
+                        <p style="font-size: 1.1em; color: #6b7280;">Get ready for the next challenge!</p>
+                        <button class="next-level-btn" onclick="nextLevel()">Next Level ➡️</button>
+                    </div>
+                `;
+            } else {
+                document.getElementById('battleArena').innerHTML = `
+                    <div class="victory-screen">
+                        <h2>🏆 CHAMPION! 🏆</h2>
+                        <p style="font-size: 1.5em; margin: 20px 0;">You've conquered all 3 levels!</p>
+                        <div class="stats" style="max-width: 400px; margin: 30px auto;">
+                            <div class="stat">
+                                <div class="stat-label">Battles Won</div>
+                                <div class="stat-value">${battlesWon}</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">Total Damage</div>
+                                <div class="stat-value">${totalDamage}</div>
+                            </div>
+                        </div>
+                        <button class="restart-btn" onclick="restartGame()">Play Again 🔄</button>
+                    </div>
+                `;
+            }
+        }
+
+        function gameOver() {
+            document.getElementById('battleArena').innerHTML = `
+                <div class="game-over-screen">
+                    <h2>💀 Game Over 💀</h2>
+                    <p style="font-size: 1.3em; margin: 20px 0;">You were defeated by ${levels[currentLevel].enemy.name}!</p>
+                    <div class="stats" style="max-width: 400px; margin: 30px auto;">
+                        <div class="stat">
+                            <div class="stat-label">Level Reached</div>
+                            <div class="stat-value">${currentLevel + 1}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Total Damage</div>
+                            <div class="stat-value">${totalDamage}</div>
+                        </div>
+                    </div>
+                    <button class="restart-btn" onclick="restartGame()">Try Again 🔄</button>
+                </div>
+            `;
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            location.reload();
+            initLevel();
+        }
+
+        function restartGame() {
+            currentLevel = 0;
+            battlesWon = 0;
+            totalDamage = 0;
+            location.reload();
+        }
+
+        // Initialize the game
+        initLevel();
+    </script>
+</body>
+</html>
